@@ -1,5 +1,4 @@
 import argparse
-import io
 import json
 import os
 import re
@@ -22,7 +21,7 @@ def _read(path):
     if path == "-":
         data = sys.stdin.buffer.read() if hasattr(sys.stdin, "buffer") else sys.stdin.read()
         return data.decode("utf-8") if isinstance(data, bytes) else data
-    with io.open(path, "r", encoding="utf-8", newline="") as handle:
+    with open(path, encoding="utf-8", newline="") as handle:
         return handle.read()
 
 
@@ -46,13 +45,13 @@ def _target_mode(path, like=None):
 
 def _stage(path, text, like=None, mode=None):
     if os.path.islink(path):
-        raise SkinError("%s is a symbolic link. Choose a regular output file." % (path,))
+        raise SkinError(f"{path} is a symbolic link. Choose a regular output file.")
     if os.path.exists(path) and not os.path.isfile(path):
-        raise SkinError("%s is not a regular output file." % (path,))
+        raise SkinError(f"{path} is not a regular output file.")
     mode = mode if mode is not None else _target_mode(path, like)
     descriptor, temporary = tempfile.mkstemp(prefix=".pyskins-", dir=os.path.dirname(os.path.abspath(path)))
     try:
-        with io.open(descriptor, "w", encoding="utf-8", newline="") as handle:
+        with open(descriptor, "w", encoding="utf-8", newline="") as handle:
             handle.write(text)
         os.chmod(temporary, mode)
     except BaseException:
@@ -97,15 +96,15 @@ def _write(text, path=None, like=None, mode=None):
 
 
 def _say(lines):
-    _write(u"\n".join(lines).rstrip() + u"\n")
+    _write("\n".join(lines).rstrip() + "\n")
 
 
 def _tell(message):
-    sys.stderr.write("pyskins: %s\n" % (message,))
+    sys.stderr.write(f"pyskins: {message}\n")
 
 
 def _count(number, word):
-    return "%d %s%s" % (number, word, "" if number == 1 else "s")
+    return f"{number} {word}{'' if number == 1 else 's'}"
 
 
 def _json(data):
@@ -118,18 +117,18 @@ def _command_list(args):
         try:
             text = load_skin(name).description
         except SkinError as error:
-            text = "(broken: %s)" % (error,)
-        where = "" if is_built_in(path) else "  [yours: %s]" % (path,)
-        lines.append("%-12s %s%s" % (name, text, where))
+            text = f"(broken: {error})"
+        where = "" if is_built_in(path) else f"  [yours: {path}]"
+        lines.append(f"{name:<12} {text}{where}")
     _say(lines)
 
 
 def _command_show(args):
     skin = load_skin(args.skin)
-    lines = ["%s: %s" % (skin.title or skin.name, skin.description), ""]
+    lines = [f"{skin.title or skin.name}: {skin.description}", ""]
     width = max(len(new) for new in skin.words.values()) if skin.kind() != "emoji" else 0
     for word in sorted(skin.words, key=lambda item: item.lower()):
-        lines.append("%s  %-9s %s" % (skin.words[word].ljust(width), word, skin.why.get(word, "")))
+        lines.append(f"{skin.words[word].ljust(width)}  {word:<9} {skin.why.get(word, '')}")
     _say(lines)
 
 
@@ -161,7 +160,7 @@ def _dest(args):
 
 def _report_dest(verb, args, dest):
     if dest and _same_file(dest, args.file):
-        _tell("%s %s in place." % (verb, args.file))
+        _tell(f"{verb} {args.file} in place.")
 
 
 def _skin_ref(args):
@@ -180,13 +179,13 @@ def _command_apply(args):
     source = _read(args.file)
     wearing = read_header(source)
     if wearing:
-        raise SkinError("This file already wears the %r skin. Take it off first: pyskins undo %s" % (wearing, args.file))
+        raise SkinError(f"This file already wears the {wearing!r} skin. Take it off first: pyskins undo {args.file}")
     dressed = apply(source, skin)
     if not args.bare:
         installed = _guard_installed_name(skin.name, skin)
         dressed = add_header(dressed, skin.name)
         if not installed:
-            _tell("note: Python can only run this file after you add the skin: pyskins add %s" % (ref,))
+            _tell(f"note: Python can only run this file after you add the skin: pyskins add {ref}")
     dest = _dest(args)
     _write(dressed, dest, like=args.file)
     _report_dest("dressed", args, dest)
@@ -196,8 +195,7 @@ def _skin_for(text, path, skin_name=None):
     name = skin_name or read_header(text)
     if not name:
         raise SkinError(
-            "Which skin does %s wear? Its first line does not say. Tell me with --skin, for example --skin christmas."
-            % (path,)
+            f"Which skin does {path} wear? Its first line does not say. Tell me with --skin, for example --skin christmas."
         )
     return load_skin(name)
 
@@ -205,16 +203,16 @@ def _skin_for(text, path, skin_name=None):
 def _folders(args, verb):
     root = os.path.realpath(args.file)
     if not args.output:
-        raise SkinError("To %s a folder, give -o OUT, a new folder for the result." % (verb,))
+        raise SkinError(f"To {verb} a folder, give -o OUT, a new folder for the result.")
     out = os.path.realpath(args.output)
     if _inside(out, root) or _inside(root, out):
-        raise SkinError("The output folder must be separate from the folder you %s." % (verb,))
+        raise SkinError(f"The output folder must be separate from the folder you {verb}.")
     return root, out
 
 
 def _undo_suite(args):
     root, out = _folders(args, "undo")
-    skin =load_skin(args.skin) if args.skin else None
+    skin = load_skin(args.skin) if args.skin else None
     if skin is None:
         for path in _iter_py_files(root):
             header = read_header(_read(path))
@@ -223,7 +221,7 @@ def _undo_suite(args):
                 break
         if skin is None:
             raise SkinError(
-                "No skinned .py files under %s, and no --skin given." % (args.file,)
+                f"No skinned .py files under {args.file}, and no --skin given."
             )
 
     def change(src, text):
@@ -233,7 +231,7 @@ def _undo_suite(args):
         return undo(body, skin)
 
     changed, _ = _mirror_tree(root, out, change)
-    _tell("restored %s to %s." % (_count(changed, "file"), args.output))
+    _tell("restored {} to {}.".format(_count(changed, "file"), args.output))
 
 
 def _command_undo(args):
@@ -254,7 +252,7 @@ def _command_run(args):
     try:
         code = compile(source, path, "exec", dont_inherit=True)
     except SyntaxError as error:
-        raise SkinError("%s has a mistake on line %s: %s" % (path, error.lineno, error.msg))
+        raise SkinError(f"{path} has a mistake on line {error.lineno}: {error.msg}")
 
     main_module = types.ModuleType("__main__")
     main_module.__file__ = path
@@ -283,19 +281,19 @@ def _command_new(args):
     name = check_name(args.name)
     path = args.output or (name + ".json")
     if os.path.exists(path):
-        raise SkinError("%s already exists. I will not overwrite it." % (path,))
+        raise SkinError(f"{path} already exists. I will not overwrite it.")
     like = load_skin(args.like) if args.like else None
     _write(new_skin_text(name, like), path)
     _say([
-        "Created %s with all %d Python keywords and %d everyday names such as print and len."
-        % (path, len(KEYWORDS), len(EVERYDAY_NAMES)),
+        f"Created {path} with all {len(KEYWORDS)} Python keywords and {len(EVERYDAY_NAMES)} everyday names "
+        "such as print and len.",
         "",
         "Next:",
         "  1. Open it and put an emoji (and a few words why) next to each word.",
         "     The keywords come first. The everyday names are a bonus: leave any of them empty.",
-        "  2. pyskins check %s        see what is still missing, and test it" % (path,),
-        "  3. pyskins apply %s app.py  try it on real code" % (path,),
-        "  4. pyskins add %s          then you can use it by name" % (path,),
+        f"  2. pyskins check {path}        see what is still missing, and test it",
+        f"  3. pyskins apply {path} app.py  try it on real code",
+        f"  4. pyskins add {path}          then you can use it by name",
     ])
 
 
@@ -305,17 +303,17 @@ def _command_check(args):
     everyday = [word for word in EVERYDAY_NAMES if word in skin.words]
     extra = [word for word in sorted(skin.words) if word not in KEYWORDS and word not in EVERYDAY_NAMES]
     lines = [
-        "Skin %r is valid. It is made of %s." % (skin.name, skin.kind()),
-        "Keywords covered: %d of %d." % (len(KEYWORDS) - len(missing), len(KEYWORDS)),
+        f"Skin {skin.name!r} is valid. It is made of {skin.kind()}.",
+        f"Keywords covered: {len(KEYWORDS) - len(missing)} of {len(KEYWORDS)}.",
     ]
     if missing:
-        lines.append("Not covered yet: %s" % (" ".join(missing),))
-    lines.append("Everyday names covered (a bonus): %d of %d." % (len(everyday), len(EVERYDAY_NAMES)))
+        lines.append("Not covered yet: {}".format(" ".join(missing)))
+    lines.append(f"Everyday names covered (a bonus): {len(everyday)} of {len(EVERYDAY_NAMES)}.")
     if extra:
-        lines.append("Also replaces these names: %s" % (" ".join(extra),))
+        lines.append("Also replaces these names: {}".format(" ".join(extra)))
     no_reason = [word for word in sorted(skin.words) if not skin.why.get(word)]
     if no_reason:
-        lines.append("No explanation yet for: %s" % (" ".join(no_reason),))
+        lines.append("No explanation yet for: {}".format(" ".join(no_reason)))
     dressed = apply(SAMPLE, skin)
     lines.append("Test: a file with every keyword was skinned and came back exactly the same.")
     lines.extend(["", "A taste:", ""])
@@ -328,13 +326,13 @@ def _command_add(args):
     name = skin.name
     existing = find_skins().get(name)
     if existing and is_built_in(existing):
-        raise SkinError("%r is a built-in skin. Give your custom skin file a different name." % (name,))
+        raise SkinError(f"{name!r} is a built-in skin. Give your custom skin file a different name.")
     folder = user_folder()
     if not os.path.isdir(folder):
         os.makedirs(folder)
     target = os.path.join(folder, name + ".json")
     if os.path.exists(target) and not args.replace:
-        raise SkinError("You already have a skin called %r in %s. Use --replace to overwrite it." % (name, folder))
+        raise SkinError(f"You already have a skin called {name!r} in {folder}. Use --replace to overwrite it.")
     # Save the resolved mapping: a relative "extends" would not resolve from the user folder.
     data = {
         "name": name, "title": skin.title, "description": skin.description,
@@ -343,11 +341,18 @@ def _command_add(args):
     if skin.total:
         data["total"] = True
     _write(_json(data), target, like=args.file)
-    _say([
-        "Added %r (%d words) to %s" % (name, len(skin.words), folder),
-        "Use it by name:  pyskins apply %s app.py -o app_%s.py" % (name, name),
-        "Then run it:     python app_%s.py" % (name,),
-    ])
+    lines = [f"Added {name!r} ({len(skin.words)} words) to {folder}"]
+    if skin.total:
+        lines += [
+            "Python can now run the files hidden with this key.",
+            "To get the code back:  pyskins undo FILE",
+        ]
+    else:
+        lines += [
+            f"Use it by name:  pyskins apply {name} app.py -o app_{name}.py",
+            f"Then run it:     python app_{name}.py",
+        ]
+    _say(lines)
 
 
 def _safe_stem(text):
@@ -358,8 +363,8 @@ def _guard_installed_name(name, skin):
     known = find_skins()
     if name in known and load_skin(name).words != skin.words:
         raise SkinError(
-            "A different skin called %r is already installed. Use another file name, "
-            "so the file cannot run with the wrong skin." % (name,)
+            f"A different skin called {name!r} is already installed. Use another file name, "
+            "so the file cannot run with the wrong skin."
         )
     return name in known
 
@@ -367,8 +372,8 @@ def _guard_installed_name(name, skin):
 def _check_new_key(key_path):
     if os.path.exists(key_path):
         raise SkinError(
-            "A key already exists at %s. I will not overwrite it: it may be the way back to other files. "
-            "Choose another --key path, or remove it yourself." % (key_path,)
+            f"A key already exists at {key_path}. I will not overwrite it: it may be the way back to other files. "
+            "Choose another --key path, or remove it yourself."
         )
 
 
@@ -399,14 +404,14 @@ def _mirror_tree(root, out, change_py):
         if not os.path.isdir(target_dir):
             os.makedirs(target_dir)
         if not _inside(target_dir, out):
-            raise SkinError("%s leads outside the output folder (a symbolic link?). Stopping." % (target_dir,))
+            raise SkinError(f"{target_dir} leads outside the output folder (a symbolic link?). Stopping.")
         for filename in filenames:
             src = os.path.join(dirpath, filename)
             dst = os.path.join(target_dir, filename)
             if os.path.islink(dst):
-                raise SkinError("%s is a symbolic link. Stopping rather than write through it." % (dst,))
+                raise SkinError(f"{dst} is a symbolic link. Stopping rather than write through it.")
             if os.path.exists(dst) and not os.path.isfile(dst):
-                raise SkinError("%s is not a regular file. Stopping rather than write through it." % (dst,))
+                raise SkinError(f"{dst} is not a regular file. Stopping rather than write through it.")
             new_text = change_py(src, _read(src)) if filename.endswith(".py") else None
             if new_text is None:
                 shutil.copy2(src, dst)
@@ -429,9 +434,9 @@ def _obfuscate_suite(args, base):
         else:
             sources[path] = text
     if total_py == 0:
-        raise SkinError("No .py files found under %s." % (args.file,))
+        raise SkinError(f"No .py files found under {args.file}.")
     if not sources:
-        raise SkinError("Every .py file under %s already wears a skin." % (args.file,))
+        raise SkinError(f"Every .py file under {args.file} already wears a skin.")
 
     name = _safe_stem(os.path.basename(out) or os.path.basename(root))
     skin, data, pieces = make_total_multi(sources.values(), base_skin=base, name=name)
@@ -441,7 +446,7 @@ def _obfuscate_suite(args, base):
     if _inside(key_path, root) or _inside(key_path, out):
         raise SkinError(
             "The key must be saved outside both folders, or it could overwrite your code "
-            "(not under %s or %s)." % (args.file, args.output)
+            f"(not under {args.file} or {args.output})."
         )
     _check_new_key(key_path)
 
@@ -452,14 +457,15 @@ def _obfuscate_suite(args, base):
     mode = _common_mode(sources)
     _write(_json(data), key_path, mode=mode if mode & 0o400 else 0o600)
 
-    _tell("obfuscated %s%s." % (_count(changed, "file"), " (%d already done, copied as they were)" % already if already else ""))
+    skipped = f" ({already} already done, copied as they were)" if already else ""
+    _tell(f"obfuscated {_count(changed, 'file')}{skipped}.")
     if copied:
-        _tell("copied %s so the folder still runs." % (_count(copied, "other file"),))
-    _tell("your originals under %s were not changed." % (args.file,))
-    _tell("key saved to %s -- keep it, it is the only way back." % (key_path,))
-    _tell("install the key once:  pyskins add %s" % (key_path,))
-    _tell("then run as usual:     python %s" % (os.path.join(args.output, "<your entry file>.py"),))
-    _tell("get it all back:       pyskins undo %s -o %s --skin %s" % (args.output, args.file.rstrip("/\\") + "_plain", key_path))
+        _tell("copied {} so the folder still runs.".format(_count(copied, "other file")))
+    _tell(f"your originals under {args.file} were not changed.")
+    _tell(f"key saved to {key_path} -- keep it, it is the only way back.")
+    _tell(f"install the key once:  pyskins add {key_path}")
+    _tell("then run as usual:     python {}".format(os.path.join(args.output, "<your entry file>.py")))
+    _tell("get it all back:       pyskins undo {} -o {} --skin {}".format(args.output, args.file.rstrip("/\\") + "_plain", key_path))
 
 
 def _command_obfuscate(args):
@@ -470,7 +476,7 @@ def _command_obfuscate(args):
         raise SkinError("Obfuscation needs a file to work on, not text piped in.")
     source = _read(args.file)
     if read_header(source):
-        raise SkinError("This file already wears a skin. Take it off first: pyskins undo %s" % (args.file,))
+        raise SkinError(f"This file already wears a skin. Take it off first: pyskins undo {args.file}")
     if args.output == "-":
         raise SkinError("Obfuscation also writes a key, so it cannot print to the screen. "
                         "Give a file with -o, or leave -o off to change the file in place.")
@@ -489,11 +495,11 @@ def _command_obfuscate(args):
     # Key first: if the code write fails, the source is never left hidden without a key.
     _write_all([(key_path, _json(data), args.file), (out, obfuscated, args.file)])
 
-    _tell("hid %s of your file%s." % (_count(len(pieces), "piece"), " (keywords themed)" if base else ""))
+    _tell("hid {} of your file{}.".format(_count(len(pieces), "piece"), " (keywords themed)" if base else ""))
     _report_dest("obfuscated", args, out)
-    _tell("key saved to %s -- keep it, it is the only way back." % (key_path,))
-    _tell("run it with:   pyskins run --skin %s %s" % (key_path, out))
-    _tell("get it back:   pyskins undo %s --skin %s" % (out, key_path))
+    _tell(f"key saved to {key_path} -- keep it, it is the only way back.")
+    _tell(f"run it with:   pyskins run --skin {key_path} {out}")
+    _tell(f"get it back:   pyskins undo {out} --skin {key_path}")
 
 
 def build_parser():
@@ -529,7 +535,7 @@ def build_parser():
     sub.set_defaults(run=_command_undo)
 
     sub = commands.add_parser("run", help="run a skinned file (plain python can do it too, once pyskins is installed)")
-    sub.add_argument("--skin", help="the skin the file wears (only needed if its first line does not say)")
+    sub.add_argument("-s", "--skin", help="the skin the file wears (only needed if its first line does not say)")
     sub.add_argument("file", help="the skinned file to run")
     sub.add_argument("arguments", nargs=argparse.REMAINDER, help="anything after the file goes to your program")
     sub.set_defaults(run=_command_run)
@@ -571,8 +577,8 @@ def main(argv=None):
         _tell(error)
     except UnicodeError:
         _tell("files must contain valid UTF-8 text.")
-    except (IOError, OSError) as error:
-        _tell("could not read or write the file: %s" % (error,))
+    except OSError as error:
+        _tell(f"could not read or write the file: {error}")
     return 1
 
 

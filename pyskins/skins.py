@@ -1,4 +1,3 @@
-import io
 import json
 import os
 
@@ -19,7 +18,7 @@ EVERYDAY_NAMES = (
 ).split()
 
 
-class Skin(object):
+class Skin:
     def __init__(self, name, title, description, words, why, path=None, total=False):
         self.name = name
         self.title = title
@@ -37,7 +36,7 @@ class Skin(object):
         return made_of.pop() if len(made_of) == 1 else "mixed"
 
     def __repr__(self):
-        return "Skin(%r, %d words)" % (self.name, len(self.words))
+        return f"Skin({self.name!r}, {len(self.words)} words)"
 
 
 def user_folder():
@@ -74,21 +73,21 @@ def is_built_in(path):
 def _check_replacement(word, new, words):
     for character in new:
         if character.isspace():
-            raise SkinError("The replacement for %r contains a space." % (word,))
+            raise SkinError(f"The replacement for {word!r} contains a space.")
     if is_word(new):
         if new == word:
-            raise SkinError("%r is replaced by itself. Leave it out of the skin." % (word,))
+            raise SkinError(f"{word!r} is replaced by itself. Leave it out of the skin.")
         if new in KEYWORDS and new not in words:
             raise SkinError(
-                "%r is replaced by %r, which is a Python keyword. That is only possible "
-                "if the skin also replaces %r with something else." % (word, new, new)
+                f"{word!r} is replaced by {new!r}, which is a Python keyword. That is only possible "
+                f"if the skin also replaces {new!r} with something else."
             )
         return
     for character in new:
         if ord(character) < 128 or character.isalnum():
             raise SkinError(
-                "The replacement for %r is %r. Use emoji only, or one plain word made of letters. "
-                "A mix, or signs such as # or &, could be mistaken for code." % (word, new)
+                f"The replacement for {word!r} is {new!r}. Use emoji only, or one plain word made of letters. "
+                "A mix, or signs such as # or &, could be mistaken for code."
             )
 
 
@@ -97,7 +96,7 @@ def skin_from_dict(data, name=None, path=None, _loading=()):
         raise SkinError('A skin is a JSON object with a "words" section.')
     for field in ("name", "title", "description", "extends"):
         if field in data and not isinstance(data[field], str):
-            raise SkinError("The %r field must be text." % (field,))
+            raise SkinError(f"The {field!r} field must be text.")
 
     total = bool(data.get("total"))
 
@@ -115,10 +114,10 @@ def skin_from_dict(data, name=None, path=None, _loading=()):
             reason = value[1] if len(value) > 1 else ""
         else:
             new, reason = value, ""
-        if not isinstance(new, type(u"")) or not isinstance(reason, type(u"")):
-            raise SkinError("The entry for %r must be text." % (word,))
+        if not isinstance(new, str) or not isinstance(reason, str):
+            raise SkinError(f"The entry for {word!r} must be text.")
         if not total and not word.isidentifier():
-            raise SkinError("%r is not a Python word." % (word,))
+            raise SkinError(f"{word!r} is not a Python word.")
         if not new:
             words.pop(word, None)
             why.pop(word, None)
@@ -134,15 +133,14 @@ def skin_from_dict(data, name=None, path=None, _loading=()):
     seen = {}
     for word, new in words.items():
         if new in seen:
-            raise SkinError("%r and %r use the same replacement %s." % (seen[new], word, new))
+            raise SkinError(f"{seen[new]!r} and {word!r} use the same replacement {new}.")
         seen[new] = word
     emoji = [new for new in seen if not is_word(new)]
     for one in emoji:
         for other in emoji:
             if one != other and one in other:
                 raise SkinError(
-                    "The emoji for %r is part of the emoji for %r. They could be confused."
-                    % (seen[one], seen[other])
+                    f"The emoji for {seen[one]!r} is part of the emoji for {seen[other]!r}. They could be confused."
                 )
 
     return Skin(
@@ -168,39 +166,38 @@ def load_skin(name_or_path, _folder=None, _loading=()):
         path = find_skins().get(name)
         if path is None:
             raise SkinError(
-                "There is no skin called %r. Skins you can use: %s. "
-                "Or give the path to your own .json file." % (name, ", ".join(list_skins()))
+                "There is no skin called {!r}. Skins you can use: {}. "
+                "Or give the path to your own .json file.".format(name, ", ".join(list_skins()))
             )
     key = os.path.abspath(path)
     if key in _loading:
-        raise SkinError("The skin %r extends itself, directly or through another skin." % (name,))
+        raise SkinError(f"The skin {name!r} extends itself, directly or through another skin.")
     try:
-        with io.open(path, "r", encoding="utf-8") as handle:
+        with open(path, encoding="utf-8") as handle:
             data = json.load(handle)
-    except (IOError, OSError) as error:
-        raise SkinError("Could not open the skin file %s: %s" % (path, error))
+    except OSError as error:
+        raise SkinError(f"Could not open the skin file {path}: {error}")
     except ValueError as error:
-        raise SkinError("The skin file %s is not valid JSON: %s" % (path, error))
+        raise SkinError(f"The skin file {path} is not valid JSON: {error}")
     return skin_from_dict(data, name=name, path=path, _loading=_loading + (key,))
 
 
 def new_skin_text(name, like=None):
     lines = [
-        u"{",
-        u'  "name": %s,' % json.dumps(name),
-        u'  "title": %s,' % json.dumps(name.capitalize()),
-        u'  "description": "Say in one line what this skin is.",',
-        u'  "words": {',
+        "{",
+        f'  "name": {json.dumps(name)},',
+        f'  "title": {json.dumps(name.capitalize())},',
+        '  "description": "Say in one line what this skin is.",',
+        '  "words": {',
     ]
     entries = []
     listed = KEYWORDS + EVERYDAY_NAMES
     if like:
         listed = listed + [word for word in sorted(like.words) if word not in listed]
     for word in listed:
-        new = like.words.get(word, u"") if like else u""
-        reason = like.why.get(word, u"") if like else u""
-        entries.append(u"    %s: [%s, %s]" % (
-            json.dumps(word), json.dumps(new, ensure_ascii=False), json.dumps(reason, ensure_ascii=False)))
-    lines.append(u",\n".join(entries))
-    lines.extend([u"  }", u"}", u""])
-    return u"\n".join(lines)
+        new = like.words.get(word, "") if like else ""
+        reason = like.why.get(word, "") if like else ""
+        entries.append(f"    {json.dumps(word)}: [{json.dumps(new, ensure_ascii=False)}, {json.dumps(reason, ensure_ascii=False)}]")
+    lines.append(",\n".join(entries))
+    lines.extend(["  }", "}", ""])
+    return "\n".join(lines)

@@ -1,4 +1,4 @@
-SAMPLE = u'''import os as system
+SAMPLE = '''import os as system
 from math import pi
 
 counter = 0

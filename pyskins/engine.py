@@ -13,9 +13,9 @@ NAME_OK = re.compile(r"[a-z0-9_]+")
 
 
 def check_name(name):
-    if not isinstance(name, type(u"")) or not NAME_OK.fullmatch(name):
+    if not isinstance(name, str) or not NAME_OK.fullmatch(name):
         raise SkinError(
-            "A skin name may only use lowercase letters, digits and '_' (got %r)." % (name,)
+            f"A skin name may only use lowercase letters, digits and '_' (got {name!r})."
         )
     return name
 
@@ -41,7 +41,7 @@ _INSIDE_END = _token_types("FSTRING_END", "TSTRING_END")
 
 _COMMENT = _token_types("COMMENT")
 
-_BOM = u"﻿"
+_BOM = "﻿"
 
 
 def is_word(replacement):
@@ -81,7 +81,7 @@ def _spans(source, total=False):
                     raise SkinError("Could not find my place in this file. It may use unusual line endings.")
                 spans[(first, last)] = text
     except (tokenize.TokenError, SyntaxError, IndexError) as error:
-        raise SkinError("This does not look like Python code that I can read: %s" % (error,))
+        raise SkinError(f"This does not look like Python code that I can read: {error}")
     return spans
 
 
@@ -126,9 +126,8 @@ def apply(source, skin, check=True):
             edits.append((start, end, words[name]))
         elif name in taken:
             raise SkinError(
-                "This file already uses the name %r. The skin %r needs that word to stand for %r, "
+                f"This file already uses the name {name!r}. The skin {skin.name!r} needs that word to stand for {taken[name]!r}, "
                 "so it could not be taken off again. Rename it in your code, or use another skin."
-                % (name, skin.name, taken[name])
             )
     result = bom + _splice(body, edits)
     if check and undo(result, skin) != source:
@@ -215,7 +214,7 @@ def add_header(text, skin_name):
     for line in _first_lines(text):
         if _ANY_CODING.match(line):
             raise SkinError(
-                "This file already has a 'coding' line near the top (%s). Remove that line first." % (line.strip(),)
+                f"This file already has a 'coding' line near the top ({line.strip()}). Remove that line first."
             )
     newline = "\r\n" if "\r\n" in text else "\n"
     header = header_line(skin_name)

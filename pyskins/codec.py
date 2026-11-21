@@ -25,14 +25,14 @@ def search(encoding):
         except SkinError as error:
             raise UnicodeDecodeError(
                 "pyskins", raw, 0, len(raw),
-                "could not take off the %r skin: %s" % (skin_name, error),
+                f"could not take off the {skin_name!r} skin: {error}",
             )
         return text, length
 
     class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
         def _buffer_decode(self, data, errors, final):
             if not final:
-                return u"", 0
+                return "", 0
             return decode(data, errors)
 
     class StreamReader(utf8.streamreader):

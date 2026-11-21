@@ -1,6 +1,5 @@
 import glob
 import hashlib
-import io
 import os
 import sys
 
@@ -13,7 +12,7 @@ import pyskins as ps  # noqa: E402
 
 
 def read(path):
-    with io.open(path, "r", encoding="utf-8", newline="") as handle:
+    with open(path, encoding="utf-8", newline="") as handle:
         return handle.read()
 
 
@@ -34,7 +33,7 @@ def python_files(folder):
 
 def saved_name(out, path, skin):
     digest = hashlib.sha1(path.encode("utf-8")).hexdigest()[:16]
-    return os.path.join(out, "%s.%s.pyskin" % (digest, skin.name))
+    return os.path.join(out, f"{digest}.{skin.name}.pyskin")
 
 
 def main(argv):
@@ -63,7 +62,7 @@ def main(argv):
         for path in python_files(folder):
             try:
                 source = read(path)
-            except (UnicodeDecodeError, IOError, OSError):
+            except (UnicodeDecodeError, OSError):
                 counts["unreadable"] += 1
                 continue
             counts["files"] += 1
@@ -74,37 +73,37 @@ def main(argv):
                     counts["word clash" if "already uses the name" in str(error) else "not python"] += 1
                     continue
                 if ps.undo(dressed, skin) != source:
-                    failures.append("%s [%s] round trip" % (path, skin.name))
+                    failures.append(f"{path} [{skin.name}] round trip")
                     continue
                 counts["round trips"] += 1
 
-                emoji = u"".join(new for new in skin.words.values() if not ps.engine.is_word(new))
+                emoji = "".join(new for new in skin.words.values() if not ps.engine.is_word(new))
                 if emoji:
-                    extra = source + u"\n# " + emoji + u"\n_skin_test = \"" + emoji + u" if else\"\n"
+                    extra = source + "\n# " + emoji + "\n_skin_test = \"" + emoji + " if else\"\n"
                     try:
                         if ps.undo(ps.apply(extra, skin, check=False), skin) != extra:
-                            failures.append("%s [%s] with extra emoji" % (path, skin.name))
+                            failures.append(f"{path} [{skin.name}] with extra emoji")
                         else:
                             counts["with extra emoji"] += 1
                     except ps.SkinError:
                         pass
 
                 if save:
-                    with io.open(saved_name(save, path, skin), "w", encoding="utf-8", newline="") as handle:
+                    with open(saved_name(save, path, skin), "w", encoding="utf-8", newline="") as handle:
                         handle.write(dressed)
                 if verify:
                     name = saved_name(verify, path, skin)
                     if os.path.isfile(name):
                         other = read(name)
                         if other != dressed or ps.undo(other, skin) != source:
-                            failures.append("%s [%s] differs from the other Python" % (path, skin.name))
+                            failures.append(f"{path} [{skin.name}] differs from the other Python")
                         else:
                             counts["verified"] += 1
 
     counts["FAILED"] = len(failures)
-    print("Python %s, %d skins: %s" % (sys.version.split()[0], len(skins), ", ".join(skin.name for skin in skins)))
+    print(f"Python {sys.version.split()[0]}, {len(skins)} skins: {', '.join(skin.name for skin in skins)}")
     for key in counts:
-        print("  %-17s %d" % (key, counts[key]))
+        print(f"  {key:<17} {counts[key]}")
     for line in failures[:20]:
         print("  FAILED: " + line)
     return 1 if failures else 0

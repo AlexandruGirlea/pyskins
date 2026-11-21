@@ -3,15 +3,22 @@
 <p align="center"><b>Python files written in emoji. And yes, they run.</b></p>
 
 <p align="center">
+  <a href="https://pypi.org/project/pyskins/"><img src="https://img.shields.io/pypi/v/pyskins" alt="PyPI version"></a>
+  <a href="https://github.com/AlexandruGirlea/pyskins/actions/workflows/tests.yml"><img src="https://github.com/AlexandruGirlea/pyskins/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://pypi.org/project/pyskins/"><img src="https://img.shields.io/pypi/pyversions/pyskins" alt="Python versions"></a>
+  <a href="https://github.com/AlexandruGirlea/pyskins/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AlexandruGirlea/pyskins" alt="MIT licence"></a>
+</p>
+
+<p align="center">
   <a href="https://transylvaniabytes.com/pyskins/"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-demo.svg" alt="Try it live in your browser" height="44"></a>
   &nbsp;
-  <a href="#install"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-install.svg" alt="Install in one line" height="44"></a>
+  <a href="#-install"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-install.svg" alt="Install in one line" height="44"></a>
   &nbsp;
-  <a href="#examples"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-examples.svg" alt="See fun examples" height="44"></a>
+  <a href="#-fun-programs-to-open"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-examples.svg" alt="See fun examples" height="44"></a>
   &nbsp;
-  <a href="#ai"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-ai.svg" alt="Use it with your AI" height="44"></a>
+  <a href="#-let-your-ai-assistant-do-it"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-ai.svg" alt="Use it with your AI" height="44"></a>
   &nbsp;
-  <a href="#hide"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-hide.svg" alt="Hide what it does" height="44"></a>
+  <a href="#-hide-what-it-does-obfuscation"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-hide.svg" alt="Hide what it does" height="44"></a>
 </p>
 
 <p align="center"><b><a href="https://transylvaniabytes.com/pyskins/">▶ Try pyskins in your browser</a></b> — no install, pick a skin and watch your code change.</p>
@@ -63,6 +70,7 @@ pyskins run app.py                # run it, also where pyskins is not installed 
 pyskins new NAME                  # start your own skin
 pyskins check NAME.json           # test your skin
 pyskins add NAME.json             # keep your skin, to use it by name
+pyskins obfuscate app.py          # hide everything in emoji, in place, and write a key
 ```
 
 Use `-` as the file name to read from a pipe: `cat app.py | pyskins apply christmas -` prints to the screen.
@@ -80,6 +88,8 @@ Install the skill into a project with [APM](https://github.com/microsoft/apm):
 ```sh
 apm install AlexandruGirlea/pyskins
 ```
+
+If APM cannot tell which tool you use, name it: `apm install AlexandruGirlea/pyskins --target claude` (or `codex`, `cursor`, `copilot`).
 
 | Tool | What it gets |
 |---|---|
@@ -181,7 +191,7 @@ pairs = 📖(draw(friends, seed=2026))
     🔔(giver, "gives a gift to", receiver)
 ```
 
-Curious what it says in normal Python? `pyskins undo examples/secret_santa.py`
+Curious what it says in normal Python? `pyskins undo examples/secret_santa.py -o -`
 
 ## 🎨 Make your own skin
 
@@ -282,7 +292,7 @@ pyskins undo app.py --skin app.json       # your code back, exactly
 
 ### A whole project at once
 
-Point `obfuscate` at a folder and it hides every `.py` file under it, through all the subfolders, with **one key** for the lot. Your originals are not touched:
+Point `obfuscate` at a folder and it hides every `.py` file under it, through the subfolders, with **one key** for the lot. Your originals are not touched:
 
 ```sh
 pyskins obfuscate myapp/ -o myapp_secret/   # the whole tree, one key
@@ -296,6 +306,7 @@ pyskins undo myapp_secret/ -o myapp_back/ --skin myapp_secret.json   # get it al
 - The **key is plaintext**: the `.json` lists your original names and strings next to their emoji. Anyone with the key reads everything. Keep keys out of version control (add them to your `.gitignore`), and treat a key as being as sensitive as the source.
 - **Everything in a `.py` is hidden** — names, keywords, strings, f-strings and comments all become emoji (the shape stays). A `#!` shebang on the first line is kept readable, because the OS reads it before Python does.
 - Obfuscating a **folder copies non-`.py` files unchanged** — a `.env`, a config, a data file goes across as-is. It does not hide those.
+- Obfuscating a **folder skips some subfolders**: those whose name starts with a dot, and `__pycache__`, `node_modules`, `venv`, `env` and `site-packages`. Nothing in them is obfuscated or copied.
 
 Use it to make code fun and unreadable at a glance, not to protect secrets.
 
@@ -317,20 +328,20 @@ The tests find new skin files by themselves, so there is nothing else to write. 
 
 - **Your editor will complain.** It does not know about skins, so it underlines the emoji. Python runs the file anyway.
 - **The first line matters.** `# coding: pyskins-christmas` tells Python which skin the file wears. Keep it as the first line.
-- **Python needs pyskins installed** to run a skinned file. Without it, Python says it does not know `pyskins-christmas`. Skinned files can import each other.
+- **Python needs pyskins installed** to run a skinned file. Without it, Python stops with a `SyntaxError` that names `pyskins-christmas`. Skinned files can import each other.
 - **Nothing in your code changes** except the words of the skin. Strings, comments, f-strings, spacing and line endings stay exactly as they were.
 - **The skin always comes off.** Before you get a skinned file, the tool takes the skin off again and compares with your original. If anything differs, it stops.
 - **Linters, formatters and type checkers** want normal Python. Take the skin off for those: `pyskins undo`.
-- **"pip install" works for the Python you installed it into** -- that interpreter or virtual environment. A `pip install --target`, `python -S`, or some `pipx`/`uv tool` installs do not hook the start-up file; there, use `pyskins run`.
-- **What install actually does.** Installing drops a small `.pth` file next to the package, so that Python registers a source codec at **every start-up** of that interpreter. It is lazy and only ever handles `pyskins-*` coding lines -- every other file reads exactly as before -- but it is a change to that interpreter, and it stays on for as long as pyskins is installed (`pyskins run` does **not** turn it off; `run` is for interpreters where pyskins is *not* installed, where it registers the codec just for that one run). To avoid the start-up hook, don't `pip install` pyskins into that interpreter -- keep it in its own virtual environment, or use `pyskins run` from an interpreter that does not have it installed.
+- **"pip install" works for the Python you installed it into** — that interpreter or virtual environment. A `pip install --target`, `python -S`, or some `pipx`/`uv tool` installs do not hook the start-up file; there, use `pyskins run`.
+- **What install actually does.** Installing drops a small `.pth` file next to the package, so that Python registers a source codec at **every start-up** of that interpreter. It is lazy and only ever handles `pyskins-*` coding lines — every other file reads exactly as before — but it is a change to that interpreter, and it stays on for as long as pyskins is installed (`pyskins run` does **not** turn it off; `run` is for interpreters where pyskins is *not* installed, where it registers the codec just for that one run). To avoid the start-up hook, don't `pip install` pyskins into that interpreter — keep it in its own virtual environment, or use `pyskins run` from an interpreter that does not have it installed.
 - **A file that already has its own `# coding:` line** (such as `# -*- coding: utf-8 -*-`) is refused by `apply`. Remove that line first.
 - **On Windows, use `-o`** rather than `>` or a pipe: PowerShell re-encodes the output and would corrupt the emoji.
 
 ## 🐍 Python versions
 
-Plain Python, no dependencies, no newer language features. Every push runs the tests on Python 3.9 through 3.14; Python 3.8 and the 3.15 pre-release are tested by hand as well. A file skinned on one version runs and comes back exactly on another.
+Plain Python, no dependencies, no newer language features. Every push runs the tests on Python 3.8 through 3.15, on Linux and macOS. A file skinned on one version runs and comes back exactly on another.
 
-Older Python 3 versions may work too, but are not tested.
+pyskins needs Python 3.8 or newer.
 
 <details>
 <summary>Use it from your own Python code</summary>
@@ -342,6 +353,24 @@ skin = pyskins.load_skin("christmas")
 dressed = pyskins.apply("if True: pass\n", skin)
 plain = pyskins.undo(dressed, skin)
 ```
+
+| Name | What it does |
+|---|---|
+| `load_skin(name_or_path)` | Loads a skin by name, or from your own `.json` file. Returns a `Skin`. |
+| `list_skins()` | The names of the skins you can use, sorted. |
+| `find_skins()` | The same skins as a dictionary: name to file path. |
+| `skin_from_dict(data)` | Makes a `Skin` from a dictionary shaped like a skin file. |
+| `apply(source, skin)` | Returns the code with the skin on. It takes the skin off again to check, and raises `SkinError` if anything differs. |
+| `undo(text, skin)` | Returns the normal Python. Works for obfuscated code too. |
+| `add_header(text, name)` | Returns the text with the `# coding: pyskins-NAME` line that lets Python run the file. |
+| `read_header(text)` | The skin name on that line, or `None`. |
+| `remove_header(text)` | Returns the text without that line, and the skin name. |
+| `make_total(source)` | Makes an obfuscation key for one file. Returns `(skin, data, pieces)`; save `data` as the key's `.json` file. |
+| `make_total_multi(sources)` | The same, with one key for many files. |
+| `apply_total(source, skin)` | Returns the code obfuscated with that key. |
+| `Skin` | A loaded skin: `name`, `title`, `description`, `words`, `why`, `path`, `total`. |
+| `SkinError` | The error pyskins raises when it refuses something. |
+| `KEYWORDS`, `EVERYDAY_NAMES` | The 35 keywords and the 26 everyday names a skin can replace. |
 
 </details>
 
