@@ -68,7 +68,7 @@ pyskins run app.py [arguments]         # run it, when pyskins is not installed i
 pyskins undo app.py                    # skin off, in place
 ```
 
-`apply`, `undo` and `obfuscate` change the file in place by default; `-o FILE` writes a copy and keeps the original. For `apply` and `undo`, `-o -` prints to the screen (`obfuscate` cannot print, because it also writes a key). `SKIN` is a built-in name such as `faces` or `christmas`, **or a path to the user's own `.json` skin** — users are never limited to the built-ins, and need no library update to use their own.
+`apply`, `undo` and `obfuscate` change the file in place by default; `-o FILE` writes a copy and keeps the original. For `apply` and `undo`, `-o -` prints to the screen (`obfuscate` cannot print, because it also writes a key). `SKIN` is a built-in name such as `faces` or `christmas`, **or a path to the user's own `.json` skin**. Users are never limited to the built-ins, and need no library update to use their own.
 
 Use `-` as the file to read from a pipe. `python -m pyskins` works the same as `pyskins`.
 
@@ -95,7 +95,7 @@ When you show skinned code in a chat, put it in a `text` code block, not a `pyth
 
 ## Hiding what the code does (obfuscation)
 
-A theme skin keeps the code readable. To hide it, `pyskins obfuscate` turns *everything* — every name the user invented, every keyword, every string — into emoji, while keeping the Python shape (indentation, punctuation, line breaks). It still runs, because the file carries a first line that names its key and pyskins turns it back before Python runs it.
+A theme skin keeps the code readable. To hide it, `pyskins obfuscate` turns *everything* (every name the user invented, every keyword, every string) into emoji, while keeping the Python shape (indentation, punctuation, line breaks). It still runs, because the file carries a first line that names its key and pyskins turns it back before Python runs it.
 
 ```sh
 pyskins obfuscate app.py --skin christmas
@@ -105,7 +105,7 @@ This changes `app.py` in place and writes `app.json` (the key) beside it; add `-
 
 - Run it: after `pyskins add app.json`, plain `python app.py` works; or `pyskins run --skin app.json app.py` without installing.
 - Undo it: `pyskins undo app.py --skin app.json` gives the exact original.
-- `-s/--skin SKIN` is optional: it flavours the keywords with a theme (christmas, faces). Without it they take plain emoji. Everything is hidden either way — names like `greet` and keyword arguments like `tired=` included.
+- `-s/--skin SKIN` is optional: it flavours the keywords with a theme (christmas, faces). Without it they take plain emoji. Everything is hidden either way, names like `greet` and keyword arguments like `tired=` included.
 
 To obfuscate a whole project, give `obfuscate` a folder and a `-o` output folder. It hides every `.py` file through all subfolders with one shared key, copies other files so the tree still runs, and leaves the originals untouched:
 
@@ -116,7 +116,7 @@ python myapp_secret/app.py                                # runs like the origin
 pyskins undo myapp_secret/ -o myapp_back/ --skin myapp_secret.json   # restore the whole tree
 ```
 
-Be honest with the user: this is not a secret keeper. The key `.json` is plaintext — it lists the original names and strings next to their emoji — so anyone with the key reads everything; tell the user to keep keys out of version control. Inside a `.py` everything is hidden — names, keywords, strings, f-strings and comments all become emoji (a `#!` shebang on the first line is kept, since the OS reads it before Python). A string or f-string that spans several lines collapses to one emoji (`undo` restores it exactly); and obfuscating a folder copies non-`.py` files (a `.env`, a config) across unchanged. It hides code from a reader, not from anyone who has the key. Say so if the user expects real protection.
+Be honest with the user: this is not a secret keeper. The key `.json` is plaintext: it lists the original names and strings next to their emoji, so anyone with the key reads everything; tell the user to keep keys out of version control. Inside a `.py` everything is hidden: names, keywords, strings, f-strings and comments all become emoji (a `#!` shebang on the first line is kept, since the OS reads it before Python). A string or f-string that spans several lines collapses to one emoji (`undo` restores it exactly); and obfuscating a folder copies non-`.py` files (a `.env`, a config) across unchanged. It hides code from a reader, not from anyone who has the key. Say so if the user expects real protection.
 
 ## Making a new skin
 

@@ -21,7 +21,7 @@
   <a href="#-hide-what-it-does-obfuscation"><img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/button-hide.svg" alt="Hide what it does" height="44"></a>
 </p>
 
-<p align="center"><b><a href="https://transylvaniabytes.com/pyskins/">▶ Try pyskins in your browser</a></b> — no install, pick a skin and watch your code change.</p>
+<p align="center"><b><a href="https://transylvaniabytes.com/pyskins/">▶ Try pyskins in your browser</a></b>. No install, pick a skin and watch your code change.</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/AlexandruGirlea/pyskins/main/assets/card-christmas.svg" width="760" alt="A Python file called gift.py written in Christmas emoji: class is a Christmas tree, def is a gift, if is Santa, return is a sleigh">
@@ -252,7 +252,7 @@ If a skin could not be taken off again, the tool refuses it and tells you which 
 
 ## 🕵 Hide what it does (obfuscation)
 
-A theme skin keeps your code readable. Obfuscation hides *everything* — every name you chose, every keyword, every string — but keeps the **Python shape**: the same indentation, the same punctuation, the same line breaks between statements. The file still looks like Python; it just says nothing to a reader. (One exception: a string that spans several lines becomes a single emoji on one line — `undo` puts it back exactly.)
+A theme skin keeps your code readable. Obfuscation hides *everything* (every name you chose, every keyword, every string) but keeps the **Python shape**: the same indentation, the same punctuation, the same line breaks between statements. The file still looks like Python; it just says nothing to a reader. (One exception: a string that spans several lines becomes a single emoji on one line; `undo` puts it back exactly.)
 
 ```sh
 pyskins obfuscate app.py --skin christmas
@@ -278,9 +278,9 @@ becomes (shape kept, nothing readable):
         🛷 🟦
 ```
 
-Your names (`Robot`, `greet`, `self`, `tired`), the keywords, and the strings are all gone — `greet` too, even where it is called as `robot.greet()`. The `--skin` flavours the keywords with a theme; leave it off and they take plain emoji.
+Your names (`Robot`, `greet`, `self`, `tired`), the keywords, and the strings are all gone. `greet` too, even where it is called as `robot.greet()`. The `--skin` flavours the keywords with a theme; leave it off and they take plain emoji.
 
-It still runs, because — like any skin — the file carries a first line that names its key, and pyskins turns it back into your exact code before Python runs it:
+It still runs because, like any skin, the file carries a first line that names its key, and pyskins turns it back into your exact code before Python runs it:
 
 ```sh
 python app.py                             # runs, once the key is installed (pyskins add app.json)
@@ -301,11 +301,11 @@ python myapp_secret/app.py                   # runs just like the original
 pyskins undo myapp_secret/ -o myapp_back/ --skin myapp_secret.json   # get it all back
 ```
 
-**Honest about what it is — not a secret keeper.** Obfuscation is reversible by design, so it hides your code from a reader, not from anyone who has the key. A few things to know:
+**Honest about what it is: not a secret keeper.** Obfuscation is reversible by design, so it hides your code from a reader, not from anyone who has the key. A few things to know:
 
 - The **key is plaintext**: the `.json` lists your original names and strings next to their emoji. Anyone with the key reads everything. Keep keys out of version control (add them to your `.gitignore`), and treat a key as being as sensitive as the source.
-- **Everything in a `.py` is hidden** — names, keywords, strings, f-strings and comments all become emoji (the shape stays). A `#!` shebang on the first line is kept readable, because the OS reads it before Python does.
-- Obfuscating a **folder copies non-`.py` files unchanged** — a `.env`, a config, a data file goes across as-is. It does not hide those.
+- **Everything in a `.py` is hidden**: names, keywords, strings, f-strings and comments all become emoji (the shape stays). A `#!` shebang on the first line is kept readable, because the OS reads it before Python does.
+- Obfuscating a **folder copies non-`.py` files unchanged**: a `.env`, a config, a data file goes across as-is. It does not hide those.
 - Obfuscating a **folder skips some subfolders**: those whose name starts with a dot, and `__pycache__`, `node_modules`, `venv`, `env` and `site-packages`. Nothing in them is obfuscated or copied.
 
 Use it to make code fun and unreadable at a glance, not to protect secrets.
@@ -332,8 +332,8 @@ The tests find new skin files by themselves, so there is nothing else to write. 
 - **Nothing in your code changes** except the words of the skin. Strings, comments, f-strings, spacing and line endings stay exactly as they were.
 - **The skin always comes off.** Before you get a skinned file, the tool takes the skin off again and compares with your original. If anything differs, it stops.
 - **Linters, formatters and type checkers** want normal Python. Take the skin off for those: `pyskins undo`.
-- **"pip install" works for the Python you installed it into** — that interpreter or virtual environment. A `pip install --target`, `python -S`, or some `pipx`/`uv tool` installs do not hook the start-up file; there, use `pyskins run`.
-- **What install actually does.** Installing drops a small `.pth` file next to the package, so that Python registers a source codec at **every start-up** of that interpreter. It is lazy and only ever handles `pyskins-*` coding lines — every other file reads exactly as before — but it is a change to that interpreter, and it stays on for as long as pyskins is installed (`pyskins run` does **not** turn it off; `run` is for interpreters where pyskins is *not* installed, where it registers the codec just for that one run). To avoid the start-up hook, don't `pip install` pyskins into that interpreter — keep it in its own virtual environment, or use `pyskins run` from an interpreter that does not have it installed.
+- **"pip install" works for the Python you installed it into**: that interpreter or virtual environment. A `pip install --target`, `python -S`, or some `pipx`/`uv tool` installs do not hook the start-up file; there, use `pyskins run`.
+- **What install actually does.** Installing drops a small `.pth` file next to the package, so that Python registers a source codec at **every start-up** of that interpreter. It is lazy and only ever handles `pyskins-*` coding lines, so every other file reads exactly as before, but it is a change to that interpreter, and it stays on for as long as pyskins is installed (`pyskins run` does **not** turn it off; `run` is for interpreters where pyskins is *not* installed, where it registers the codec just for that one run). To avoid the start-up hook, don't `pip install` pyskins into that interpreter: keep it in its own virtual environment, or use `pyskins run` from an interpreter that does not have it installed.
 - **A file that already has its own `# coding:` line** (such as `# -*- coding: utf-8 -*-`) is refused by `apply`. Remove that line first.
 - **On Windows, use `-o`** rather than `>` or a pipe: PowerShell re-encodes the output and would corrupt the emoji.
 

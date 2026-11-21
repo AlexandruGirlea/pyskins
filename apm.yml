@@ -1,5 +1,5 @@
 name: pyskins
-version: 0.1.1
+version: 0.1.2
 description: Teaches coding agents to skin Python code, run skinned files, and restore Python before editing.
 author: Alex and Isabela Girlea
 license: MIT
