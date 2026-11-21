@@ -1,0 +1,14 @@
+{
+  "name": "easter",
+  "title": "Easter (a starter)",
+  "description": "The faces skin with a few Easter swaps. Shows how one skin can build on another.",
+  "extends": "faces",
+  "words": {
+    "class": ["🧺", "the basket that holds everything"],
+    "def": ["🥚", "an egg with something inside"],
+    "return": ["🐇", "the bunny brings it back"],
+    "for": ["🐣", "one chick after another"],
+    "import": ["🌷", "pick a flower"],
+    "True": ["🌼", "a daisy says yes"]
+  }
+}

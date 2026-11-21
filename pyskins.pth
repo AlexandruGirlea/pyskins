@@ -1,0 +1,1 @@
+import codecs; codecs.register(lambda name: __import__("pyskins.codec", fromlist=["search"]).search(name) if name.lower().replace("-", "_").startswith("pyskins_") else None)

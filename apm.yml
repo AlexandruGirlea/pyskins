@@ -1,0 +1,11 @@
+name: pyskins
+version: 0.1.0
+description: Teaches coding agents to skin Python code, run skinned files, and restore Python before editing.
+author: Alex and Isabela Girlea
+license: MIT
+
+dependencies:
+  apm: []
+  mcp: []
+includes: auto
+scripts: {}

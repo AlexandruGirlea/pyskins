@@ -1,0 +1,19 @@
+{
+  "name": "php",
+  "title": "PHP flavour",
+  "description": "Python that looks a little like PHP. A skin made of words, not emoji.",
+  "words": {
+    "def": ["function", "PHP says function"],
+    "None": ["null", "PHP says null"],
+    "True": ["true", "lower case in PHP"],
+    "False": ["false", "lower case in PHP"],
+    "elif": ["elseif", "one word in PHP"],
+    "except": ["catch", "try and catch"],
+    "raise": ["throw", "throw an exception"],
+    "import": ["require", "require a file"],
+    "lambda": ["fn", "the short arrow function"],
+    "del": ["unset", "unset a variable"],
+    "print": ["echo", "PHP says echo"],
+    "self": ["this", "PHP says $this"]
+  }
+}
