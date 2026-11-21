@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.1 — 2026-11-21
+## 0.1.2 (2026-11-21)
+
+- Small wording changes in the README and the skill file. No code changes.
+
+## 0.1.1 (2026-11-21)
 
 - `pyskins run` takes `-s` as a short form of `--skin`, like the other commands.
 - `pyskins add` shows the right next steps after you add an obfuscation key.
@@ -11,7 +15,7 @@
 - Package metadata: SPDX licence, one classifier for each Python version, links to the changelog and the demo.
 - New: `SECURITY.md`, `CODE_OF_CONDUCT.md`, and templates for issues and pull requests.
 
-## 0.1.0 — 2026-11-21
+## 0.1.0 (2026-11-21)
 
 First release.
 
