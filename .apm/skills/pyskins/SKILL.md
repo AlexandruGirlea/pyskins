@@ -70,7 +70,7 @@ pyskins undo app.py                    # skin off, in place
 
 `apply`, `undo` and `obfuscate` change the file in place by default; `-o FILE` writes a copy and keeps the original. For `apply` and `undo`, `-o -` prints to the screen (`obfuscate` cannot print, because it also writes a key). `SKIN` is a built-in name such as `faces` or `christmas`, **or a path to the user's own `.json` skin** — users are never limited to the built-ins, and need no library update to use their own.
 
-`SKIN` is a name such as `faces` or `christmas`. Without `-o`, `apply` and `undo` change the file in place; pass `-o -` to print the result instead, or use `-` as the file to read from a pipe. `python -m pyskins` works the same as `pyskins`.
+Use `-` as the file to read from a pipe. `python -m pyskins` works the same as `pyskins`.
 
 If `pyskins` is not installed, say so and ask before you install it:
 
@@ -78,7 +78,7 @@ If `pyskins` is not installed, say so and ask before you install it:
 pip install pyskins
 ```
 
-It has no dependencies and runs on any Python 3.
+It has no dependencies and runs on Python 3.8 or newer.
 
 ## What to expect
 

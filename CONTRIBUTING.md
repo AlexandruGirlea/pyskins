@@ -70,6 +70,8 @@ python -m unittest discover -s tests
 
 The tests pick up every file in `pyskins/skins/` by themselves. You do not write a test for your skin.
 
+If you changed Python code, also run `ruff check .` (`pip install ruff`). Both checks run on every pull request.
+
 ## Skins we would love to see
 
 Pizza. A full Easter. Halloween. Space. Pirates. The ocean. Football. Cats. Music. Wizards. Python in your own language.
